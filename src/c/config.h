@@ -12,3 +12,14 @@
 #define SQLITE_TEMP_STORE               2
 #define SQLITE_THREADSAFE               0
 #define SQLITE_USE_URI                  1
+// #define SQLITE_DEBUG 1
+// #define SQLITE_ENABLE_EXPLAIN_COMMENTS 1
+// #define SQLITE_ENABLE_SELECTTRACE 1
+// #define SQLITE_ENABLE_WHERETRACE 1
+// #define SQLITE_USE_FCNTL_TRACE 1
+// #define SQLITE_HAVE_OS_TRACE 1
+// #define SQLITE_LOCK_TRACE 1
+
+// MMap
+// #define SQLITE_DEFAULT_MMAP_SIZE 10485760  // 10MiB
+// #define SQLITE_MAX_MMAP_SIZE 10485760  // 10MiB

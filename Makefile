@@ -22,7 +22,7 @@ EMSCRIPTEN ?= /usr/bin
 
 EMCC = '$(EMSCRIPTEN)/emcc'
 
-TSC = node_modules/typescript/bin/tsc
+TSC ?= node_modules/typescript/bin/tsc
 
 CFLAGS = \
 	-D_HAVE_SQLITE_CONFIG_H \
@@ -35,17 +35,22 @@ EMFLAGS = \
 		grep -Po '(?<=declare function )\w+' src/ts/module.ts | sed -e 's/\(.*\)/"\1"/;' | paste -s -d,)] \
 	-s RESERVED_FUNCTION_POINTERS=64 \
 	-s WASM=1 \
+	-s FORCE_FILESYSTEM=1 \
 	--post-js temp/api.js \
+	--post-js src/sqlite_worker.js
 
 EMFLAGS_DEBUG = \
 	-s INLINING_LIMIT=10 \
-	-O1
+	-s ASSERTIONS=1 \
+	-O3 \
+	--emrun
 
 EMFLAGS_DIST = \
 	-s INLINING_LIMIT=50 \
 	-s IGNORE_CLOSURE_COMPILER_ERRORS=1 \
 	--closure 1 \
-	-Os
+	-Os \
+	--emrun
 
 # directories
 
@@ -122,11 +127,25 @@ clean-debug:
 	rm -rf debug
 
 .PHONY: debug
-debug: debug/sqlite3.html
+debug: debug/sqlite3.js debug/index.html
+
+.PHONY: run-debug
+run-debug: debug
+	emrun --no_browser debug/index.html
 
 debug/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p debug
 	$(EMCC) $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
+
+debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js
+	mkdir -p debug
+	$(EMCC) $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
+
+debug/sqlite_client.js: src/sqlite_client.js
+	cp $< $@
+
+debug/index.html: src/index.html debug/sqlite_client.js
+	cp $< $@
 
 ## dist
 
@@ -135,8 +154,22 @@ clean-dist:
 	rm -rf dist
 
 .PHONY: dist
-dist: dist/sqlite3.html
+dist: dist/sqlite3.js dist/index.html
+
+.PHONY: run
+run: dist
+	emrun --no_browser dist/index.html
 
 dist/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p dist
 	$(EMCC) $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
+
+dist/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js
+	mkdir -p dist
+	$(EMCC) $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
+
+dist/sqlite_client.js: src/sqlite_client.js
+	cp $< $@
+
+dist/index.html: src/index.html dist/sqlite_client.js
+	cp $< $@

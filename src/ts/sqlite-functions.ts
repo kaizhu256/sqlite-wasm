@@ -59,4 +59,39 @@ namespace Module {
     export const sqlite3_free
         : (ptr: sqlite3_ptr<any> | 0) => void
         = Module["cwrap"]("sqlite3_free", "undefined", ["number"])
+
+    export const sqlite3_errstr
+    : (code: number) => string
+        = (code) => {
+            const stack = stackSave()
+            const errmsg = Module["ccall"]<"string", ["number"]>("sqlite3_errstr", "string", ["number"], [code])
+            stackRestore(stack)
+            return errmsg
+        }
+
+    export const sqlite3_exec_safe
+        : (
+            pDb: ptr<sqlite3>,
+            sql: string,
+            row_callback: (numColumns: number, columnTexts: string[], columnNames: string[]) => boolean,
+            callback: (result: { result: SQLiteResult, errmsg: string | null }) => void
+        ) => void
+        = (pDb, sql, row_callback, callback) => {
+            navigator.locks.request('sqlite_transaction', async () => {
+                return sqlite3_exec(pDb, sql, row_callback);
+            }).then(function(result: { result: SQLiteResult, errmsg: string | null }) {
+                callback(result);
+            });
+        }
+
+    export const sqlite3_exec_unsafe
+        : (
+            pDb: ptr<sqlite3>,
+            sql: string,
+            row_callback: (numColumns: number, columnTexts: string[], columnNames: string[]) => boolean,
+            callback: (result: { result: SQLiteResult, errmsg: string | null }) => void
+        ) => void
+        = (pDb, sql, row_callback, callback) => {
+            callback(sqlite3_exec(pDb, sql, row_callback));
+        }
 }
