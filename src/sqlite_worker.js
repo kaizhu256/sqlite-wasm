@@ -1,3 +1,5 @@
+var enableIOFS = false;
+
 function loadIndexedDB() {
   return new Promise(function(resolve, reject) {
     // console.log('Load IndexedDB');
@@ -132,6 +134,9 @@ function handler(port, data) {
       break;
     case 'profile':
       console.log('Profile', CHROMEFS.profileData);
+      if (enableIOFS) {
+        console.log('Profile', IOFS.profileData);
+      }
       break;
     default:
       port.postMessage({error: 'Unknown command ', data});
@@ -168,6 +173,11 @@ Module.onRuntimeInitialized = function() {
   console.log('SQLite worker on runtime initialized');
   FS.mkdir('/chrome');
   FS.mount(CHROMEFS, { root: '.' }, '/chrome');
+
+  if (enableIOFS) {
+    FS.mkdir('/io');
+    FS.mount(IOFS, { root: '.' }, '/io');
+  }
 
   FS.mkdir('/idb');
   FS.mount(IDBFS, { root: '.' }, '/idb');
