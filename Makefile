@@ -18,11 +18,11 @@ BITCODE_FILES = temp/bc/sqlite3.bc temp/bc/extension-functions.bc
 
 # build options
 
-EMSCRIPTEN ?= /usr/bin
+EMSCRIPTEN ?= $(EMSDK)/fastcomp/emscripten
 
 EMCC = '$(EMSCRIPTEN)/emcc'
 
-TSC ?= node_modules/typescript/bin/tsc
+TSC ?= $(EMSDK)/node/12.9.1_64bit/bin/tsc
 
 CFLAGS = \
 	-D_HAVE_SQLITE_CONFIG_H \
