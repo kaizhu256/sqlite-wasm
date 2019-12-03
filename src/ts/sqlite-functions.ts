@@ -41,7 +41,7 @@ namespace Module {
                     columnNames.push(columnName)
                 }
                 return (callback(numColumns, columnTexts, columnNames) as any) | 0 as i32
-            })
+            }, 'iiiii')
             const stack = stackSave()
             const ppErrmsg = stackAlloc<sqlite3_ptr<str>>(4)
             const result = Module["ccall"]<"number", ["number", "string", "number", "number", "number"]>("sqlite3_exec", "number",
