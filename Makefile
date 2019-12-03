@@ -144,7 +144,10 @@ debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sq
 debug/sqlite_client.js: src/sqlite_client.js
 	cp $< $@
 
-debug/index.html: src/index.html debug/sqlite_client.js
+debug/benchmark.js: src/benchmark.js
+	cp $< $@
+
+debug/index.html: src/index.html debug/sqlite_client.js debug/benchmark.js
 	cp $< $@
 
 ## dist
@@ -171,5 +174,8 @@ dist/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sql
 dist/sqlite_client.js: src/sqlite_client.js
 	cp $< $@
 
-dist/index.html: src/index.html dist/sqlite_client.js
+dist/benchmark.js: src/benchmark.js
+	cp $< $@
+
+dist/index.html: src/index.html dist/sqlite_client.js dist/benchmark.js
 	cp $< $@
