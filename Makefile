@@ -135,7 +135,7 @@ debug/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p debug
 	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
-debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js
+debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js ../emfs/library_chromefs.js ../emfs/library_iofs.js
 	mkdir -p debug
 	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
