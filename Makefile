@@ -30,6 +30,10 @@ EMFLAGS = \
 	-s RESERVED_FUNCTION_POINTERS=64 \
 	-s WASM=1 \
 	-s FORCE_FILESYSTEM=1 \
+	-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='["$$CHROMEFS", "$$IOFS"]' \
+	-lnodefs.js \
+	--js-library ../emfs/library_chromefs.js \
+	--js-library ../emfs/library_iofs.js \
 	--post-js temp/api.js \
 	--post-js src/sqlite_worker.js
 
