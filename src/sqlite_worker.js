@@ -1,4 +1,5 @@
 var enableIOFS = false;
+var enableIDB = false;
 
 function loadIndexedDB() {
   return new Promise(function(resolve, reject) {
@@ -179,8 +180,11 @@ Module.onRuntimeInitialized = function() {
     FS.mount(IOFS, { root: '.' }, '/io');
   }
 
-  FS.mkdir('/idb');
-  FS.mount(IDBFS, { root: '.' }, '/idb');
+  if (enableIDB) {
+    // Emscripten's IDB support is not included by default in the LLVM backend.
+    FS.mkdir('/idb');
+    FS.mount(IDBFS, { root: '.' }, '/idb');
+  }
 
   var callbacks = closures;
   closures = null;
