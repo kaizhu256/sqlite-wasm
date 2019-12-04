@@ -18,12 +18,6 @@ BITCODE_FILES = temp/bc/sqlite3.bc temp/bc/extension-functions.bc
 
 # build options
 
-EMSCRIPTEN ?= $(EMSDK)/fastcomp/emscripten
-
-EMCC = '$(EMSCRIPTEN)/emcc'
-
-TSC ?= $(EMSDK)/node/12.9.1_64bit/bin/tsc
-
 CFLAGS = \
 	-D_HAVE_SQLITE_CONFIG_H \
 	-Isrc/c -I'deps/$(SQLITE_AMALGAMATION)'
@@ -108,18 +102,18 @@ clean-temp:
 
 temp/bc/shell.bc: deps/$(SQLITE_AMALGAMATION) src/c/config.h
 	mkdir -p temp/bc
-	$(EMCC) $(CFLAGS) 'deps/$(SQLITE_AMALGAMATION)/shell.c' -o $@
+	emcc $(CFLAGS) 'deps/$(SQLITE_AMALGAMATION)/shell.c' -o $@
 
 temp/bc/sqlite3.bc: deps/$(SQLITE_AMALGAMATION) src/c/config.h
 	mkdir -p temp/bc
-	$(EMCC) $(CFLAGS) -s LINKABLE=1 'deps/$(SQLITE_AMALGAMATION)/sqlite3.c' -o $@
+	emcc $(CFLAGS) -s LINKABLE=1 'deps/$(SQLITE_AMALGAMATION)/sqlite3.c' -o $@
 
 temp/bc/extension-functions.bc: deps/$(EXTENSION_FUNCTIONS) src/c/config.h
 	mkdir -p temp/bc
-	$(EMCC) $(CFLAGS) -s LINKABLE=1 'deps/$(EXTENSION_FUNCTIONS)' -o $@
+	emcc $(CFLAGS) -s LINKABLE=1 'deps/$(EXTENSION_FUNCTIONS)' -o $@
 
 temp/api.js: $(wildcard src/ts/*)
-	$(TSC)
+	tsc
 
 ## debug
 .PHONY: clean-debug
@@ -135,11 +129,11 @@ run-debug: debug
 
 debug/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p debug
-	$(EMCC) $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
+	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
 debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js
 	mkdir -p debug
-	$(EMCC) $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
+	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
 debug/sqlite_client.js: src/sqlite_client.js
 	cp $< $@
@@ -165,11 +159,11 @@ run: dist
 
 dist/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p dist
-	$(EMCC) $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
+	emcc $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
 
 dist/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js
 	mkdir -p dist
-	$(EMCC) $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
+	emcc $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
 
 dist/sqlite_client.js: src/sqlite_client.js
 	cp $< $@
