@@ -126,35 +126,7 @@ async function many_ro(file, use_mmap) {
   await websql_close(connection);
 }
 
-async function run_iofs() {
-  console.log('Running IOFS benchmark');
-
-  init();
-
-  await measure(async () => {
-    await many_wo('/io/hello.db');
-    await many_ro('/io/hello.db');
-    await many_rw('/io/hello.db');
-  });
-
-  websql_profile();
-}
-
-async function run_iofs() {
-  console.log('Running IOFS benchmark');
-
-  init();
-
-  await measure(async () => {
-    await many_wo('/io/hello.db');
-    await many_ro('/io/hello.db');
-    await many_rw('/io/hello.db');
-  });
-
-  websql_profile();
-}
-
-async function run_chromefs() {
+async function runBenchmarkChromeFS() {
   console.log('Running Chrome FS benchmark');
 
   init();
@@ -168,6 +140,30 @@ async function run_chromefs() {
   websql_profile();
 }
 
-// Run the benchmark(s):
-// await run_iofs()
-// await run_chromefs()
+async function runBenchmarkIOFS() {
+  console.log('Running IOFS benchmark');
+
+  init();
+
+  await measure(async () => {
+    await many_wo('/io/hello.db');
+    await many_ro('/io/hello.db');
+    await many_rw('/io/hello.db');
+  });
+
+  websql_profile();
+}
+
+async function runBenchmarkNativeIOFS() {
+  console.log('Running IOFS benchmark');
+
+  init();
+
+  await measure(async () => {
+    await many_wo('/nativeio/hello.db');
+    await many_ro('/nativeio/hello.db');
+    await many_rw('/nativeio/hello.db');
+  });
+
+  websql_profile();
+}

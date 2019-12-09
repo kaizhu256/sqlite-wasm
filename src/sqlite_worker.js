@@ -1,4 +1,10 @@
+// Switch to false if your browser doesn't support IOFS
 var enableIOFS = false;
+
+// Switch to false if your browser doesn't support NativeIOFS
+var enableNativeIOFS = true;
+
+// Switch to false if your browser doesn't support IndexedDB.
 var enableIDB = false;
 
 function loadIndexedDB() {
@@ -138,6 +144,9 @@ function handler(port, data) {
       if (enableIOFS) {
         console.log('Profile', IOFS.profileData);
       }
+      if (enableNativeIOFS) {
+        console.log('Profile', NATIVEIOFS.profileData);
+      }
       break;
     default:
       port.postMessage({error: 'Unknown command ', data});
@@ -178,6 +187,11 @@ Module.onRuntimeInitialized = function() {
   if (enableIOFS) {
     FS.mkdir('/io');
     FS.mount(IOFS, { root: '.' }, '/io');
+  }
+
+  if (enableNativeIOFS) {
+    FS.mkdir('/nativeio');
+    FS.mount(NATIVEIOFS, { root: '.' }, '/nativeio');
   }
 
   if (enableIDB) {

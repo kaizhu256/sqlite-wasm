@@ -30,10 +30,11 @@ EMFLAGS = \
 	-s RESERVED_FUNCTION_POINTERS=64 \
 	-s WASM=1 \
 	-s FORCE_FILESYSTEM=1 \
-	-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='["$$CHROMEFS", "$$IOFS"]' \
+	-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='["$$CHROMEFS", "$$IOFS", "$$NATIVEIOFS"]' \
 	-lnodefs.js \
 	--js-library ../emfs/library_chromefs.js \
 	--js-library ../emfs/library_iofs.js \
+	--js-library ../emfs/library_nativeiofs.js \
 	--post-js temp/api.js \
 	--post-js src/sqlite_worker.js
 
@@ -135,7 +136,7 @@ debug/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p debug
 	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
-debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js ../emfs/library_chromefs.js ../emfs/library_iofs.js
+debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js ../emfs/library_chromefs.js ../emfs/library_iofs.js ../emfs/library_nativeiofs.js
 	mkdir -p debug
 	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
