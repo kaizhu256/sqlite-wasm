@@ -21,7 +21,9 @@ namespace Module {
         ArgTypes extends Array<NativeJsTypeSignature>>(
             ident: string,
             returnType: ReturnType,
-            argTypes: ArgTypes): (...args: { [i in keyof ArgTypes]: NativeJsTypeOf<ArgTypes[i]> }) => NativeJsTypeOf<ReturnType>
+            argTypes: ArgTypes,
+            opts?: object): (...args: { [i in keyof ArgTypes]:
+              NativeJsTypeOf<ArgTypes[i]> }) => Promise<NativeJsTypeOf<ReturnType>>
 
     export declare function ccall<
         ReturnType extends Exclude<NativeJsTypeSignature, "array">,
@@ -29,7 +31,9 @@ namespace Module {
             ident: string,
             returnType: ReturnType,
             argTypes: ArgTypes,
-            args: { [i in keyof ArgTypes]: NativeJsTypeOf<ArgTypes[i]> }): NativeJsTypeOf<ReturnType>
+            args: { [i in keyof ArgTypes]: NativeJsTypeOf<ArgTypes[i]> },
+            opts?: object):
+              Promise<NativeJsTypeOf<ReturnType>>
 
     export declare function getValue<T extends ptr<any>>(ptr: ptr<T>, type: "*", noSafe?: boolean): T;
     export declare function getValue(ptr: ptr<i32>, type: "i32", noSafe?: boolean): i32;

@@ -53,25 +53,14 @@ function sqliteErrorMessage(description, code, message) {
 }
 
 function sqliteOpen(file) {
-  var indexedDB = file.startsWith('/idb');
-  if (indexedDB) {
-    return loadIndexedDBOnce()
-        .then(() => {
-          var result = Module.sqlite3_open(file);
-          result.indexedDB = indexedDB;
-          if (result.result != 0) {
-            throw sqliteError('failed to open database', result.result);
-          }
-          return result;
-        });
-  }
-  var result = Module.sqlite3_open(file);
-  result.indexedDB = indexedDB;
-  if (result.result != 0) {
-    return Promise.reject(sqliteError('failed to open database', result.result));
-  }
-  return Promise.resolve(result);
-}
+  debugger;
+  return Module.sqlite3_open(file).then(result => {
+    if (result.result != 0) {
+      return Promise.reject(sqliteError('failed to open database', result.result));
+    }
+    return result;
+  })
+ }
 
 function sqliteClose(connection) {
   var result = Module.sqlite3_close_v2(connection.pDb);

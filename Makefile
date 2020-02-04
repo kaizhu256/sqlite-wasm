@@ -1,5 +1,8 @@
 # dependencies
 
+EMCC_PATH = /usr/local/google/home/krivoy/fugu/emdev/emscripten/emcc
+EMRUN_PATH = /usr/local/google/home/krivoy/fugu/emdev/emscripten/emrun
+
 SQLITE_AMALGAMATION = sqlite-amalgamation-3250200
 SQLITE_AMALGAMATION_ZIP_URL = https://www.sqlite.org/2018/sqlite-amalgamation-3250200.zip
 SQLITE_AMALGAMATION_ZIP_SHA1 = c9ff08b91a0faacabe2acb240e5dba3cf81071f3
@@ -29,12 +32,14 @@ EMFLAGS = \
 		grep -Po '(?<=declare function )\w+' src/ts/module.ts | sed -e 's/\(.*\)/"\1"/;' | paste -s -d,)] \
 	-s RESERVED_FUNCTION_POINTERS=64 \
 	-s WASM=1 \
+	-s ASYNCIFY \
 	-s FORCE_FILESYSTEM=1 \
 	-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='["$$CHROMEFS", "$$IOFS", "$$NATIVEIOFS"]' \
 	-lnodefs.js \
 	--js-library ../emfs/library_chromefs.js \
 	--js-library ../emfs/library_iofs.js \
 	--js-library ../emfs/library_nativeiofs.js \
+	--js-library ../emfs/library_async_nativeiofs.js \
 	--post-js temp/api.js \
 	--post-js src/sqlite_worker.js
 
@@ -107,15 +112,15 @@ clean-temp:
 
 temp/bc/shell.bc: deps/$(SQLITE_AMALGAMATION) src/c/config.h
 	mkdir -p temp/bc
-	emcc $(CFLAGS) 'deps/$(SQLITE_AMALGAMATION)/shell.c' -o $@
+	$(EMCC_PATH) $(CFLAGS) 'deps/$(SQLITE_AMALGAMATION)/shell.c' -o $@
 
 temp/bc/sqlite3.bc: deps/$(SQLITE_AMALGAMATION) src/c/config.h
 	mkdir -p temp/bc
-	emcc $(CFLAGS) -s LINKABLE=1 'deps/$(SQLITE_AMALGAMATION)/sqlite3.c' -o $@
+	$(EMCC_PATH) $(CFLAGS) -s LINKABLE=1 'deps/$(SQLITE_AMALGAMATION)/sqlite3.c' -o $@
 
 temp/bc/extension-functions.bc: deps/$(EXTENSION_FUNCTIONS) src/c/config.h
 	mkdir -p temp/bc
-	emcc $(CFLAGS) -s LINKABLE=1 'deps/$(EXTENSION_FUNCTIONS)' -o $@
+	$(EMCC_PATH) $(CFLAGS) -s LINKABLE=1 'deps/$(EXTENSION_FUNCTIONS)' -o $@
 
 temp/api.js: $(wildcard src/ts/*)
 	tsc
@@ -130,15 +135,15 @@ debug: debug/sqlite3.js debug/index.html
 
 .PHONY: run-debug
 run-debug: debug
-	emrun --no_browser debug/index.html
+	$(EMRUN_PATH) --no_browser debug/index.html
 
 debug/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p debug
-	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
+	$(EMCC_PATH) $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
 debug/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js ../emfs/library_chromefs.js ../emfs/library_iofs.js ../emfs/library_nativeiofs.js
 	mkdir -p debug
-	emcc $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
+	$(EMCC_PATH) $(EMFLAGS) $(EMFLAGS_DEBUG) $(BITCODE_FILES) -o $@
 
 debug/sqlite_client.js: src/sqlite_client.js
 	cp $< $@
@@ -160,15 +165,15 @@ dist: dist/sqlite3.js dist/index.html
 
 .PHONY: run
 run: dist
-	emrun --no_browser dist/index.html
+	$(EMRUN_PATH) --no_browser dist/index.html
 
 dist/sqlite3.html: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js
 	mkdir -p dist
-	emcc $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
+	$(EMCC_PATH) $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
 
 dist/sqlite3.js: $(BITCODE_FILES) $(EXPORTED_FUNCTIONS_JSON) temp/api.js src/sqlite_worker.js
 	mkdir -p dist
-	emcc $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
+	$(EMCC_PATH) $(EMFLAGS) $(EMFLAGS_DIST) $(BITCODE_FILES) -o $@
 
 dist/sqlite_client.js: src/sqlite_client.js
 	cp $< $@

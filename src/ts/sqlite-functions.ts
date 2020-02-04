@@ -18,7 +18,9 @@ namespace Module {
     var sqlite3_exec_function
         : ptr<fn<(callbackIndex: i32, numColumns: i32, pColumnTexts: ptr<arr<ptr<str>>>, pColumnNames: ptr<arr<ptr<str>>>) => number>>;
 
-    export declare function _sqlite3_open(filename: ptr<str>, ppDb: ptr<ptr<sqlite3>>): SQLiteResult
+    export declare function _sqlite3_open(filename: ptr<str>, ppDb:
+                                          ptr<ptr<sqlite3>>):
+                                          SQLiteResult
     export declare function _sqlite3_close_v2(pDb: ptr<sqlite3>): SQLiteResult
     export declare function _sqlite3_exec<T extends ptr<any>>(
         pDb: ptr<sqlite3>,
@@ -29,18 +31,24 @@ namespace Module {
     export declare function _sqlite3_free(ptr: sqlite3_ptr<any> | 0): void
 
     export const sqlite3_open
-        : (filename: string) => { result: SQLiteResult, pDb: ptr<sqlite3> | 0 }
+        : (filename: string) => Promise<object>
         = (filename) => {
             const stack = stackSave()
             const ppDb = stackAlloc<ptr<sqlite3>>(4)
-            const result = Module["ccall"]<"number", ["string", "number"]>("sqlite3_open", "number", ["string", "number"], [filename, ppDb])
+            const resultPromise = Module["ccall"]<"number", ["string",
+              "number"]>("sqlite3_open", "number", ["string", "number"],
+                         [filename, ppDb], {async:true})
             const pDb = getValue<ptr<sqlite3>>(ppDb, "*")
             stackRestore(stack)
-            return { result, pDb }
+            return resultPromise.then(result => {
+              debugger;
+              return {result: result, pDb: pDb }
+            })
         }
+
     export const sqlite3_close_v2
-        : (pDb: ptr<sqlite3>) => SQLiteResult
-        = Module["cwrap"]("sqlite3_close_v2", "number", ["number"])
+        : (pDb: ptr<sqlite3>) => Promise<SQLiteResult>
+        = Module["cwrap"]("sqlite3_close_v2", "number", ["number"], {async: true})
 
     const sqlite3_exec_callback
         : (callbackIndex: i32, numColumns: i32, pColumnTexts: ptr<arr<ptr<str>>>, pColumnNames: ptr<arr<ptr<str>>>) => number
@@ -69,7 +77,7 @@ namespace Module {
             pDb: ptr<sqlite3>,
             sql: string,
             callback?: (numColumns: number, columnTexts: string[], columnNames: string[]) => boolean,
-        ) => { result: SQLiteResult, errmsg: string | null }
+        ) => { result: Promise<SQLiteResult>, errmsg: string | null }
         = (pDb, sql, callback) => {
             while (!sqlite3_exec_function) {
                 // addFunction may return 0 which is a valid WebAssembly
@@ -93,7 +101,7 @@ namespace Module {
             const ppErrmsg = stackAlloc<sqlite3_ptr<str>>(4)
             const result = Module["ccall"]<"number", ["number", "string", "number", "number", "number"]>("sqlite3_exec", "number",
                 ["number", "string", "number", "number", "number"],
-                [pDb, sql, callbackFunction, callbackIndex, ppErrmsg])
+                [pDb, sql, callbackFunction, callbackIndex, ppErrmsg], {async: true})
             const pErrmsg = getValue<sqlite3_ptr<str>>(ppErrmsg, "*")
             stackRestore(stack)
             const errmsg = pErrmsg === 0 ? null : UTF8ToString(pErrmsg)
@@ -107,8 +115,9 @@ namespace Module {
         }
     export const sqlite3_free
         : (ptr: sqlite3_ptr<any> | 0) => void
-        = Module["cwrap"]("sqlite3_free", "undefined", ["number"])
+        = Module["cwrap"]("sqlite3_free", "undefined", ["number"], {async: true})
 
+    //TODO: asyncify
     export const sqlite3_errstr
     : (code: number) => string
         = (code) => {
