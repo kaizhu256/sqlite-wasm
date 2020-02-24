@@ -118,7 +118,7 @@ function handler(port, data) {
       break;
     case 'fsUnlink':
       try {
-        FS.unlink(data.request.file);
+        io.unlink(data.request.file);
         port.postMessage({});
       } catch (e) {
         port.postMessage({error: {
@@ -170,24 +170,24 @@ var closures = [];
 
 Module.onRuntimeInitialized = function() {
   console.log('SQLite worker on runtime initialized');
-  FS.mkdir('/chrome');
-  FS.mount(CHROMEFS, { root: '.' }, '/chrome');
+  //FS.mkdir('/chrome');
+  //FS.mount(CHROMEFS, { root: '.' }, '/chrome');
 
-  if (enableIOFS) {
-    FS.mkdir('/io');
-    FS.mount(IOFS, { root: '.' }, '/io');
-  }
+  //if (enableIOFS) {
+  //  FS.mkdir('/io');
+  //  FS.mount(IOFS, { root: '.' }, '/io');
+  //}
 
-  if (enableNativeIOFS) {
-    FS.mkdir('/nativeio');
-    FS.mount(NATIVEIOFS, { root: '.' }, '/nativeio');
-  }
+  //if (enableNativeIOFS) {
+  //  FS.mkdir('/nativeio');
+  //  FS.mount(NATIVEIOFS, { root: '.' }, '/nativeio');
+  //}
 
-  if (enableIDB) {
-    // Emscripten's IDB support is not included by default in the LLVM backend.
-    FS.mkdir('/idb');
-    FS.mount(IDBFS, { root: '.' }, '/idb');
-  }
+  //if (enableIDB) {
+  //  // Emscripten's IDB support is not included by default in the LLVM backend.
+  //  FS.mkdir('/idb');
+  //  FS.mount(IDBFS, { root: '.' }, '/idb');
+  //}
 
   var callbacks = closures;
   closures = null;

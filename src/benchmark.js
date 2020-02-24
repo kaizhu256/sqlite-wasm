@@ -20,6 +20,11 @@ function init() {
   }
 }
 
+function rmAllNativeIO() {
+  var entries = io.listByPrefix('')
+  for (e of entries) { io.unlink(e) }
+}
+
 async function enable_mmap(connection) {
   const mmap_size = 10485760;
   await websql_exec(connection, `PRAGMA mmap_size=${mmap_size};`, row => { });
@@ -33,9 +38,7 @@ async function single(file) {
   init();
 
   connection = await websql_open(file);
-  try {
-    await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", row => { });
-  } catch (e) {}
+  await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", row => { });
 
   await websql_exec(connection, "INSERT INTO tbl VALUES ('hello');", row => { });
   await websql_exec(connection, "SELECT * FROM tbl;", row => { });
@@ -47,13 +50,7 @@ var runs = 1000;
 async function many_rw(file, use_mmap) {
   var n = runs;
 
-  try {
-    await fsUnlink(file);
-  } catch (e) {
-    if (e.code !== "ENOENT") {
-      throw e;
-    }
-  }
+  rmAllNativeIO()
 
   connection = await websql_open(file);
   if (use_mmap) {
@@ -61,9 +58,7 @@ async function many_rw(file, use_mmap) {
     await websql_exec(connection, `PRAGMA mmap_size;`, row => { console.log(row); });
   }
 
-  try {
-    await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", row => { });
-  } catch (e) {}
+  await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", row => { });
 
   var rows = 0;
   for (var i = 0; i < n; ++i) {
@@ -76,18 +71,13 @@ async function many_rw(file, use_mmap) {
   }
 
   await websql_close(connection);
+  console.log('done with rw, wrote ', rows, ' rows')
 }
 
 async function many_wo(file, use_mmap) {
   var n = runs;
 
-  try {
-    await fsUnlink(file);
-  } catch (e) {
-    if (e.code !== "ENOENT") {
-      throw e;
-    }
-  }
+  rmAllNativeIO()
 
   connection = await websql_open(file);
   if (use_mmap) {
@@ -95,24 +85,32 @@ async function many_wo(file, use_mmap) {
     await websql_exec(connection, `PRAGMA mmap_size;`, row => { console.log(row); });
   }
 
-  try {
-    await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", row => { });
-  } catch (e) {}
+  await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", () => { });
 
+  var rows = 0;
   for (var i = 0; i < n; ++i) {
-    await websql_exec(connection, "INSERT INTO tbl VALUES ('" + i + "');", row => { })
+    await websql_exec(connection, "INSERT INTO tbl VALUES ('" + i + "');", row => { ++rows })
+  }
+
+  if (rows != n) {
+    console.log(`${file}: readwrite: rows = ${rows}; want ${n} rows`);
   }
 
   await websql_close(connection);
+  console.log('done with wo, wrote ', rows, ' rows')
 }
 
 async function many_ro(file, use_mmap) {
   var n = runs;
 
+  rmAllNativeIO()
+
   connection = await websql_open(file);
   if (use_mmap) {
     await enable_mmap(connection);
   }
+
+  await websql_exec(connection, "CREATE TABLE tbl(name varchar(100));", () => { });
 
   var rows = 0;
   for (var i = 0; i < n; ++i) {
@@ -124,6 +122,7 @@ async function many_ro(file, use_mmap) {
   }
 
   await websql_close(connection);
+  console.log('done with ro, wrote ', rows, ' rows')
 }
 
 async function runBenchmarkChromeFS() {
@@ -160,8 +159,11 @@ async function runBenchmarkNativeIOFS() {
   init();
 
   await measure(async () => {
+    console.log('start wo');
     await many_wo('/nativeio/hello.db');
+    console.log('start ro');
     await many_ro('/nativeio/hello.db');
+    console.log('start rw');
     await many_rw('/nativeio/hello.db');
   });
 
