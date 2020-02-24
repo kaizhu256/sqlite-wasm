@@ -53,7 +53,6 @@ function sqliteErrorMessage(description, code, message) {
 }
 
 function sqliteOpen(file) {
-  debugger;
   return Module.sqlite3_open(file).then(result => {
     if (result.result != 0) {
       return Promise.reject(sqliteError('failed to open database', result.result));
@@ -63,20 +62,21 @@ function sqliteOpen(file) {
  }
 
 function sqliteClose(connection) {
-  var result = Module.sqlite3_close_v2(connection.pDb);
-  if (connection.indexedDB) {
-    return storeIndexedDB().then(() => {
-      if (result != 0) {
-        throw sqliteError('failed to close database', result);
-      }
-      return result;
-    });
+  return Module.sqlite3_close_v2(connection.pDb).then((result) => {
+    if (connection.indexedDB) {
+      return storeIndexedDB().then(() => {
+        if (result != 0) {
+          throw sqliteError('failed to close database', result);
+        }
+        return result;
+      });
+    }
+    if (result != 0) {
+      return Promise.reject(sqliteError('failed to close database', result));
+    }
+    return Promise.resolve(result);
+  });
   }
-  if (result != 0) {
-    return Promise.reject(sqliteError('failed to close database', result));
-  }
-  return Promise.resolve(result);
-}
 
 function sqliteExec(connection, query, row_callback) {
   return new Promise(function(resolve, reject) {

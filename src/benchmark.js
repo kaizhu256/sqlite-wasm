@@ -160,7 +160,6 @@ async function runBenchmarkNativeIOFS() {
   init();
 
   await measure(async () => {
-    debugger;
     await many_wo('/nativeio/hello.db');
     await many_ro('/nativeio/hello.db');
     await many_rw('/nativeio/hello.db');

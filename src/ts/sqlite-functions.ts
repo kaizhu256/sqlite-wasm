@@ -38,10 +38,9 @@ namespace Module {
             const resultPromise = Module["ccall"]<"number", ["string",
               "number"]>("sqlite3_open", "number", ["string", "number"],
                          [filename, ppDb], {async:true})
-            const pDb = getValue<ptr<sqlite3>>(ppDb, "*")
-            stackRestore(stack)
             return resultPromise.then(result => {
-              debugger;
+              const pDb = getValue<ptr<sqlite3>>(ppDb, "*")
+              stackRestore(stack)
               return {result: result, pDb: pDb }
             })
         }
@@ -77,7 +76,7 @@ namespace Module {
             pDb: ptr<sqlite3>,
             sql: string,
             callback?: (numColumns: number, columnTexts: string[], columnNames: string[]) => boolean,
-        ) => { result: Promise<SQLiteResult>, errmsg: string | null }
+        ) => Promise<object>
         = (pDb, sql, callback) => {
             while (!sqlite3_exec_function) {
                 // addFunction may return 0 which is a valid WebAssembly
@@ -99,20 +98,25 @@ namespace Module {
 
             const stack = stackSave()
             const ppErrmsg = stackAlloc<sqlite3_ptr<str>>(4)
-            const result = Module["ccall"]<"number", ["number", "string", "number", "number", "number"]>("sqlite3_exec", "number",
+            const resultPromise = Module["ccall"]<"number", ["number", "string", "number", "number", "number"]>("sqlite3_exec", "number",
                 ["number", "string", "number", "number", "number"],
                 [pDb, sql, callbackFunction, callbackIndex, ppErrmsg], {async: true})
-            const pErrmsg = getValue<sqlite3_ptr<str>>(ppErrmsg, "*")
-            stackRestore(stack)
-            const errmsg = pErrmsg === 0 ? null : UTF8ToString(pErrmsg)
-            sqlite3_free(pErrmsg)
 
-            if (callback) {
-                callbackMap.delete(callbackIndex);
-            }
 
-            return { result, errmsg }
+            return resultPromise.then((result) => {
+              if (callback) {
+                  callbackMap.delete(callbackIndex);
+              }
+
+              const pErrmsg = getValue<sqlite3_ptr<str>>(ppErrmsg, "*")
+              stackRestore(stack)
+              const errmsg = pErrmsg === 0 ? null : UTF8ToString(pErrmsg)
+              sqlite3_free(pErrmsg)
+
+              return {result: result, errmsg: errmsg};
+            });
         }
+
     export const sqlite3_free
         : (ptr: sqlite3_ptr<any> | 0) => void
         = Module["cwrap"]("sqlite3_free", "undefined", ["number"], {async: true})
