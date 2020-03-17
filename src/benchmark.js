@@ -45,7 +45,7 @@ async function single(file) {
   await websql_close(connection);
 }
 
-var runs = 1000;
+var runs = 100000;
 
 async function many_rw(file, use_mmap) {
   var n = runs;
