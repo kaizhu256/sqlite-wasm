@@ -1,13 +1,13 @@
 {
-  "compilerOptions": {
-    "alwaysStrict": false,
-    "target": "es6",
-    "module": "none",
-    "strict": true,
-    "outFile": "temp/api.js",
-    "noImplicitUseStrict": true
-  },
-  "include": [
-    "src/ts/*"
-  ]
+    "compilerOptions": {
+        "alwaysStrict": false,
+        "module": "none",
+        "noImplicitUseStrict": true,
+        "outFile": "temp/api.js",
+        "strict": true,
+        "target": "es6"
+    },
+    "include": [
+        "src/ts/*"
+    ]
 }
