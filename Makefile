@@ -47,7 +47,6 @@ EMFLAGS_DEBUG = \
 EMFLAGS_DIST = \
 	-s INLINING_LIMIT=50 \
 	-s IGNORE_CLOSURE_COMPILER_ERRORS=1 \
-	--closure 1 \
 	-Os \
 	--emrun
 

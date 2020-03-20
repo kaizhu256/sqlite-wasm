@@ -126,7 +126,9 @@ namespace Module {
             callback: (result: { result: SQLiteResult, errmsg: string | null }) => void
         ) => void
         = (pDb, sql, row_callback, callback) => {
-            navigator.locks.request('sqlite_transaction', async () => {
+            let newVariable: any;
+            newVariable = window.navigator;
+            newVariable.locks.request('sqlite_transaction', async () => {
                 return sqlite3_exec(pDb, sql, row_callback);
             }).then(function(result: { result: SQLiteResult, errmsg: string | null }) {
                 callback(result);
